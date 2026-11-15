@@ -63,3 +63,48 @@ The deployment script writes `apps/web/src/generated/deployment.json`. The demo 
 ## Vercel deployment
 
 Import this repository with **Root Directory `apps/web`** and **Framework Preset Next.js**. The committed configuration handles workspace installation and the Solidity/Next.js build. Follow the [Vercel deployment guide](docs/VERCEL.md) for environment variables and verification.
+
+### Local wallet network
+
+| Setting         | Value                            |
+| --------------- | -------------------------------- |
+| Network         | Hardhat local                    |
+| RPC             | `http://127.0.0.1:8545`          |
+| Chain ID        | `31337`                          |
+| Native currency | ETH (local test only)            |
+| Explorer        | None; hashes are still displayed |
+
+The local node provides well-known development accounts. Use its displayed test accounts **only in an isolated development wallet**. The application never asks for or stores private keys. No private key or seed phrase is committed in this repository. You may instead use your own throwaway wallet and fund it through the local Hardhat console; never use a wallet holding real assets.
+
+| Hardhat account | Demo role                                          |
+| --------------- | -------------------------------------------------- |
+| 0               | Registry admin and DCR mint owner                  |
+| 1               | Parent/fund provider; initially receives 5,000 DCR |
+| 2               | Child/beneficiary                                  |
+| 3               | FOOD: Kantin Nusantara                             |
+| 4               | EDUCATION: Ruang Buku                              |
+| 5               | TRANSPORT: Jalan Bersama                           |
+| 6               | OTHER: Toko Serba Ada                              |
+
+Only public addresses and local merchant names are exported to the browser. No local merchant seed is deployed on Base Sepolia.
+
+## Supabase setup
+
+1. Create a Supabase project and run the **complete** `supabase/migrations/001_initial.sql` in its SQL editor, or use your normal migration workflow.
+2. Set these values in `apps/web/.env.local`:
+
+   ```dotenv
+   APP_ORIGIN=http://localhost:3000
+   SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SECRET
+   SERVER_RPC_URL=http://127.0.0.1:8545
+   ```
+
+3. Restart Next.js. Visit `/connect`, connect the desired wallet, sign the one-use SIWE challenge, then save the profile.
+4. Parent labels use `/api/children`. Merchants submit applications from `/merchant`. The current on-chain registry owner signs in to review them at `/admin`.
+
+`APP_ORIGIN` must exactly match the browser origin. `localhost` and `127.0.0.1` are different origins. Production requires HTTPS because session cookies are `Secure` in production. Do not set these server secrets with a `NEXT_PUBLIC_` prefix.
+
+All six tables enable RLS and revoke browser-role access. There are **no permissive anonymous policies**. The server gateway uses the service-role key, validates the wallet session, and scopes queries to that wallet. This design intentionally does not confuse SIWE sessions with Supabase Auth JWTs. Admin access is checked against `MerchantRegistry.owner()` on chain on each protected admin request. The two security-definer nonce functions have a fixed search path and are executable only by `service_role`.
+
+For maintenance, periodically remove expired sessions, old nonces, and obsolete attempt logs using a trusted database maintenance job. Put a global request limiter at your hosting edge before exposing authentication publicly. Nonce issuance already has a serialized per-wallet limit of five per minute.
