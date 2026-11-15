@@ -1,0 +1,29 @@
+{
+  "name": "money-with-rules",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @mwr/web",
+    "build": "npm run compile && npm run build -w @mwr/web",
+    "lint": "npm run lint -w @mwr/web",
+    "typecheck": "npm run typecheck -w @mwr/web",
+    "compile": "npm run compile -w @mwr/contracts",
+    "test": "npm run test -w @mwr/contracts && npm run test -w @mwr/web",
+    "test:http": "node scripts/http-smoke.cjs",
+    "chain": "npm run node -w @mwr/contracts",
+    "deploy:local": "npm run deploy:local -w @mwr/contracts",
+    "deploy:base": "npm run deploy:base -w @mwr/contracts",
+    "demo": "npm run demo -w @mwr/contracts",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.10.1"
+  }
+}
