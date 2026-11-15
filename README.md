@@ -63,3 +63,99 @@ The deployment script writes `apps/web/src/generated/deployment.json`. The demo 
 ## Vercel deployment
 
 Import this repository with **Root Directory `apps/web`** and **Framework Preset Next.js**. The committed configuration handles workspace installation and the Solidity/Next.js build. Follow the [Vercel deployment guide](docs/VERCEL.md) for environment variables and verification.
+
+## Local Wallet Network
+
+The application uses a local Hardhat network for blockchain development and testing.
+
+| Setting | Value |
+|---|---|
+| Network | Hardhat Local |
+| RPC URL | `http://127.0.0.1:8545` |
+| Chain ID | `31337` |
+| Native Currency | ETH (local testing only) |
+| Explorer | None |
+
+Hardhat provides predefined development accounts for testing:
+
+| Account | Demo Role |
+|---|---|
+| 0 | Registry Admin |
+| 1 | Parent / Fund Provider |
+| 2 | Child / Beneficiary |
+| 3–6 | Demo Merchants |
+
+Use these accounts only in an isolated development wallet. Never use wallets containing real assets.
+
+## Supabase Setup
+
+Supabase PostgreSQL is used for profile persistence and merchant applications.
+
+1. Create a Supabase project.
+2. Run the complete migration file `supabase/migrations/001_initial.sql` in the Supabase SQL Editor.
+3. Configure the following environment variables in `apps/web/.env.local`:
+
+```dotenv
+APP_ORIGIN=http://localhost:3000
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SECRET
+SERVER_RPC_URL=http://127.0.0.1:8545
+```
+
+4. Restart Next.js and visit `/connect` to connect your wallet and authenticate using SIWE.
+
+**Note:** On-chain functionality works without Supabase. Profile persistence and merchant applications require valid Supabase credentials. Never expose the service-role key through a `NEXT_PUBLIC_` variable.
+
+## Base Sepolia Deployment
+
+The application supports deployment to Base Sepolia using Chain ID `84532`.
+
+See the [Base Chain Documentation](https://docs.base.org/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId).
+
+### 1. Configure Environment Variables
+
+Add the following variables to the root `.env` file:
+
+```dotenv
+BASE_SEPOLIA_RPC_URL=YOUR_RPC_ENDPOINT
+DEPLOYER_PRIVATE_KEY=YOUR_TESTNET_PRIVATE_KEY
+ADMIN_ADDRESS=YOUR_ADMIN_WALLET_ADDRESS
+```
+
+Use a dedicated testnet wallet with faucet ETH. Never use a mainnet wallet.
+
+### 2. Deploy Smart Contracts
+
+Run the following commands from the repository root:
+
+```powershell
+npm run compile
+npm run deploy:base
+```
+
+The deployment script verifies the network, deploys the three smart contracts, and exports their addresses and deployment block.
+
+### 3. Configure the Web Application
+
+Update `apps/web/.env.local`:
+
+```dotenv
+NEXT_PUBLIC_CHAIN_ID=84532
+NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+SERVER_RPC_URL=https://sepolia.base.org
+```
+
+The generated deployment file provides the contract addresses. Alternatively, all three `NEXT_PUBLIC_*_ADDRESS` values can be overridden together with `NEXT_PUBLIC_DEPLOYMENT_BLOCK`.
+
+Do not mix addresses from different deployments.
+
+### 4. Complete the Setup
+
+After deployment:
+
+1. Restart or rebuild the web application.
+2. Connect the token owner through `/settings` to mint demo DCR to the parent.
+3. Connect the registry owner through `/admin` to verify merchant wallets.
+4. Test the parent-to-child-to-merchant payment flow.
+
+**Note:** Base Sepolia deployment requires testnet credentials, faucet ETH, and an RPC endpoint. Deployment scripts alone do not indicate that contracts have been published.
