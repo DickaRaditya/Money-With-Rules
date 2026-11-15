@@ -59,3 +59,7 @@ npm run dev
 Open **[http://localhost:3000](http://localhost:3000)**. Keep the Hardhat node alive. Restarting the node clears its state: rerun deployment and demo, then restart Next.js. Clear the wallet's local activity/nonce cache if it remembers transactions from a previous node instance.
 
 The deployment script writes `apps/web/src/generated/deployment.json`. The demo prints a real transaction hash and checks a permitted payment and an invalid category payment. Re-running the demo creates another three budgets; it is intentionally additive, not destructive.
+
+## Vercel deployment
+
+Import this repository with **Root Directory `apps/web`** and **Framework Preset Next.js**. The committed configuration handles workspace installation and the Solidity/Next.js build. Follow the [Vercel deployment guide](docs/VERCEL.md) for environment variables and verification.
