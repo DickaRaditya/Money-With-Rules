@@ -198,6 +198,7 @@ This repository uses the requested **Next.js Node server** with protected API ro
 ```powershell
 npm run build
 npm run start -w @mwr/web
+```
 
 ## Checks
 
