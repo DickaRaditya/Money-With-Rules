@@ -159,3 +159,42 @@ After deployment:
 4. Test the parent-to-child-to-merchant payment flow.
 
 **Note:** Base Sepolia deployment requires testnet credentials, faucet ETH, and an RPC endpoint. Deployment scripts alone do not indicate that contracts have been published.
+
+## Base Sepolia deployment
+
+The configured chain ID is **84532**. See the [Base chain reference](https://docs.base.org/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId).
+
+1. Set root `.env` with `BASE_SEPOLIA_RPC_URL`, a dedicated `DEPLOYER_PRIVATE_KEY`, and optionally `ADMIN_ADDRESS`. Do not use a mainnet account. Obtain test ETH separately.
+2. Run:
+
+   ```powershell
+   npm run compile
+   npm run deploy:base
+   ```
+
+3. The script verifies the chain ID, deploys the three contracts, and exports addresses plus the deployment block. It does **not** automatically approve merchants or mint to development accounts on testnet.
+4. Update `apps/web/.env.local`:
+
+   ```dotenv
+   NEXT_PUBLIC_CHAIN_ID=84532
+   NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+   SERVER_RPC_URL=https://sepolia.base.org
+   ```
+
+   The generated deployment file supplies the addresses. Alternatively override **all three** `NEXT_PUBLIC_*_ADDRESS` values and set `NEXT_PUBLIC_DEPLOYMENT_BLOCK`. Never combine addresses from different deployments. Leave address overrides empty to use the generated file.
+
+5. Restart/rebuild the web app. Connect the token owner at `/settings` to mint capped demo DCR to the parent. Connect the registry owner at `/admin` to verify test merchant wallets. Then execute the same parent → child → merchant flow.
+
+`ADMIN_ADDRESS` is the initial owner of both token and registry. If supplied, it must be able to sign transactions. Later ownership transfers use OpenZeppelin's two-step acceptance. The vault has no owner or admin withdrawal authority.
+
+No testnet deployment or external publication is represented as complete without an actual transaction/deployment result. This delivery includes a tested local deployment and ready-to-run Base Sepolia scripts; faucet ETH, testnet credentials, and a hosted Supabase project must be supplied by the operator.
+
+## Wallets and production hosting
+
+The app uses wagmi, viem, RainbowKit, and TanStack Query, following [RainbowKit's documented integration](https://rainbowkit.com/en-US/docs/installation). Injected wallets work without a WalletConnect project. For WalletConnect, set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` and configure your allowed deployment origins in that service.
+
+This repository uses the requested **Next.js Node server** with protected API routes. Deploy `apps/web` to a Next.js-compatible Node/HTTPS host with the root npm workspace lockfile, compile contracts before building, and supply the server-only environment variables. It is not a static export, and it has not been published through a substitute framework or placeholder API. Public RPC URLs are public by design; put private provider credentials only in `SERVER_RPC_URL`.
+
+```powershell
+npm run build
+npm run start -w @mwr/web
