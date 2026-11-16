@@ -198,3 +198,21 @@ This repository uses the requested **Next.js Node server** with protected API ro
 ```powershell
 npm run build
 npm run start -w @mwr/web
+
+## Checks
+
+```powershell
+npm run compile
+npm test
+npm run lint
+npm run typecheck
+npm run build
+# All checks in one command:
+npm run check
+# With npm run dev already running (optional HTTP integration checks):
+npm run test:http
+```
+
+The contract suite covers every payment status, approval rollback, budget isolation, exact limits, UTC resets, preserved daily spending, pause/unpause, whitelist intersections, merchant suspension/revocation, category disablement, permission boundaries, mint caps, controlled withdrawals/reallocation, double-spend, accounting invariants, and malicious token transfers/callbacks. The web suite executes the migration against embedded PostgreSQL (PGlite) and tests deny-by-default access, nonce expiry/rate limiting/one-time consumption, SIWE binding, signature mismatch, QR integrity and token precision. It does not require hosted database credentials.
+
+See [architecture and data model](docs/ARCHITECTURE.md), [security and limitations](docs/SECURITY.md), [complete demo walkthrough](docs/DEMO.md), and [verification record](docs/VERIFICATION.md).
